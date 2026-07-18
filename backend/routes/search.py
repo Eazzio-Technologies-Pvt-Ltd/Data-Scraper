@@ -1,0 +1,46 @@
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+from database.db import get_db
+from database.cache import make_cache_key, get_cached_result, save_to_cache
+from services.google_places import search_places
+from services.data_processor import process_results
+from models.response import SearchResponse
+from models.business import BusinessModel
+
+router = APIRouter()
+
+@router.get("/search", response_model=SearchResponse)
+async def search_businesses(
+    keyword:  str = Query(..., min_length=1),
+    location: str = Query(..., min_length=1),
+    db: Session = Depends(get_db)
+):
+    keyword  = keyword.strip()
+    location = location.strip()
+    if not keyword or not location:
+        raise HTTPException(status_code=400, detail="keyword and location are required")
+
+    cache_key = make_cache_key(keyword, location)
+    cached    = get_cached_result(db, cache_key)
+
+    if cached:
+        return SearchResponse(
+            keyword=keyword, location=location,
+            result_count=len(cached), from_cache=True,
+            results=[BusinessModel(**b) for b in cached]
+        )
+
+    try:
+        raw     = search_places(keyword, location)
+        results = process_results(raw)
+    except Exception as e:
+        print(f"ERROR: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+
+    save_to_cache(db, keyword, location, cache_key, results)
+
+    return SearchResponse(
+        keyword=keyword, location=location,
+        result_count=len(results), from_cache=False,
+        results=[BusinessModel(**b) for b in results]
+    )
