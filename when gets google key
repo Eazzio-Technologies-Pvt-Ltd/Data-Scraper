@@ -1,0 +1,114 @@
+Simple hai! Jab Google API key mile toh **sirf 2 files change karni hain:**
+
+---
+
+## Step 1 — `.env` update karo
+
+```
+GOOGLE_API_KEY=your_google_key_here
+SERPAPI_KEY=your_serpapi_key_here    ← rakhlo backup ke liye
+CACHE_EXPIRY_HOURS=24
+MAX_RESULTS=60
+ALLOWED_ORIGIN=http://localhost:5173
+```
+
+---
+
+## Step 2 — `google_places.py` replace karo
+
+```python
+import requests
+import time
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+API_KEY     = os.getenv("GOOGLE_API_KEY")
+MAX_RESULTS = int(os.getenv("MAX_RESULTS", 60))
+BASE_URL    = "https://maps.googleapis.com/maps/api/place"
+
+def search_places(keyword: str, location: str) -> list:
+    query   = f"{keyword} in {location}"
+    url     = f"{BASE_URL}/textsearch/json"
+    results = []
+    params  = {"query": query, "key": API_KEY}
+
+    for page in range(3):
+        if page > 0:
+            time.sleep(2)
+        resp = requests.get(url, params=params, timeout=10)
+        data = resp.json()
+        if data.get("status") not in ["OK", "ZERO_RESULTS"]:
+            break
+        results.extend(data.get("results", []))
+        token = data.get("next_page_token")
+        if not token or len(results) >= MAX_RESULTS:
+            break
+        params = {"pagetoken": token, "key": API_KEY}
+
+    return results[:MAX_RESULTS]
+
+def get_place_details(place_id: str) -> dict:
+    url    = f"{BASE_URL}/details/json"
+    params = {
+        "place_id": place_id,
+        "fields":   "formatted_phone_number,website",
+        "key":      API_KEY
+    }
+    resp   = requests.get(url, params=params, timeout=10)
+    result = resp.json().get("result", {})
+    return {
+        "phone":   result.get("formatted_phone_number"),
+        "website": result.get("website")
+    }
+```
+
+## Step 3 — `data_processor.py` mein `process_results` update karo
+
+```python
+def process_results(raw_results: list) -> list:
+    processed = []
+    for r in raw_results:
+        place_id   = r.get("place_id", "")
+        components = r.get("address_components", [])
+        details    = get_place_details(place_id) if place_id else {}
+        rating_raw = r.get("rating")
+        rating     = round(rating_raw, 1) if rating_raw is not None else None
+
+        business = {
+            "place_id":  place_id,
+            "name":      (r.get("name") or "").strip(),
+            "address":   r.get("formatted_address"),
+            "city":      extract_city(components),      # ← perfect city extraction
+            "state":     extract_state(components),
+            "pincode":   extract_pincode(components),
+            "phone":     details.get("phone"),
+            "email":     None,
+            "website":   details.get("website"),
+            "rating":    rating,
+            "type":      map_type(r.get("types", [])),
+            "maps_link": f"https://www.google.com/maps/place/?q=place_id:{place_id}",
+        }
+        processed.append(business)
+    return processed
+```
+
+---
+
+## Summary
+
+```
+SerpAPI (abhi)     →  google_places.py = SerpAPI code
+                      data_processor.py = title, address string parse
+
+Google API (baad)  →  google_places.py = Google Places code  
+                      data_processor.py = address_components parse
+                      
+Baaki sab same rahega:
+✅ routes/search.py  — no change
+✅ routes/export.py  — no change  
+✅ Frontend          — no change
+✅ .env              — sirf key add karo
+```
+
+Bas yahi 2 files change karni hain — 10 min ka kaam! 😊
