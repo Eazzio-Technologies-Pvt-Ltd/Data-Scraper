@@ -17,9 +17,13 @@ app     = FastAPI(title="BizScraper Pro API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+origins = [o.strip() for o in origins]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("ALLOWED_ORIGIN", "http://localhost:5173")],
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
