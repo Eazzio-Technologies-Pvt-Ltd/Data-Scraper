@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 import "./LandingPage.css";
 
 export default function LandingPage({ onLaunchApp }) {
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [showPopup, setShowPopup] = useState(true);
 
   const handleWaitlistSubmit = (e) => {
     e.preventDefault();
@@ -460,6 +462,32 @@ export default function LandingPage({ onLaunchApp }) {
           <span>© 2025 All rights reserved</span>
         </div>
       </footer>
+
+      {/* Helper Popup to guide users to Launch Console */}
+      {showPopup && (
+        <div 
+          className="fixed bottom-6 right-6 z-50 w-[90%] sm:w-[380px] bg-[#1a1b31]/95 backdrop-blur-md border border-white/10 rounded-xl p-4 shadow-2xl guide-popup flex items-start gap-3 text-white"
+          style={{ 
+            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)",
+          }}
+        >
+          <div className="flex-1 space-y-1">
+            <p className="text-[12px] font-bold text-violet-400 flex items-center gap-1.5 uppercase tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              <span>💡</span> Workspace Explorer
+            </p>
+            <p className="text-[12px] text-slate-300 leading-relaxed font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>
+              Ready to extract local business data? Click the <strong className="text-white font-semibold">"Launch Console"</strong> button in the top-right corner to get started!
+            </p>
+          </div>
+          <button 
+            onClick={() => setShowPopup(false)}
+            className="text-slate-400 hover:text-white transition-colors cursor-pointer focus:outline-none p-1 hover:bg-white/5 rounded-md self-center"
+            title="Dismiss guide"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
