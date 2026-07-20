@@ -19,16 +19,16 @@ export default function LoginPage() {
 
   return (
     <div 
-      className="h-screen w-screen max-h-screen bg-[#F4F5F9] flex items-center justify-center p-4 font-sans antialiased overflow-hidden"
+      className="min-h-screen w-full bg-[#F4F5F9] flex items-center justify-center p-4 font-sans antialiased lg:h-screen lg:max-h-screen lg:overflow-hidden overflow-y-auto"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       
-      {/* Main Container - Compact Static Height */}
-      <div className="w-full max-w-[1000px] h-[640px] max-h-[92vh] bg-white rounded-none shadow-[0_20px_50px_-10px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+      {/* Main Container - Responsive Layout */}
+      <div className="w-full max-w-[480px] lg:max-w-[1000px] bg-white rounded-2xl lg:rounded-none shadow-[0_20px_50px_-10px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 lg:h-[640px] lg:max-h-[92vh]">
         
-        {/* ================= LEFT SECTION (PROMOTIONAL PANEL - BRANDING & FEATURES) ================= */}
+        {/* ================= PROMOTIONAL SECTION (Top Banner on Mobile / Left 50% on Desktop) ================= */}
         <div 
-          className="lg:col-span-6 relative p-8 flex flex-col justify-between h-full overflow-hidden"
+          className="lg:col-span-6 relative p-6 sm:p-8 flex flex-col justify-between h-[280px] lg:h-full overflow-hidden shrink-0"
           style={{
             backgroundImage: "url('/mascot.png')",
             backgroundSize: 'cover',
@@ -37,10 +37,8 @@ export default function LoginPage() {
             backgroundColor: '#F3EBF9'
           }}
         >
-          {/* Top Section: Branding + Text overlay above astronaut */}
-          <div className="relative z-10 space-y-6">
-            
-            {/* Top Left Branding Logo */}
+          {/* Top Left Branding Logo */}
+          <div className="relative z-10">
             <button 
               onClick={() => navigate('/')} 
               className="flex items-center gap-2 hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer p-0"
@@ -52,7 +50,11 @@ export default function LoginPage() {
                 BizScraper <span className="text-[#7C3AED]">Pro</span>
               </span>
             </button>
+          </div>
 
+          {/* DESKTOP ONLY CONTENT (Hidden on mobile < 1024px) */}
+          <div className="hidden lg:block relative z-10 space-y-6 my-auto">
+            
             {/* Heading & Subtitle */}
             <div className="space-y-2 max-w-sm">
               <h1 className="text-3xl sm:text-[34px] font-extrabold text-slate-900 leading-tight tracking-tight">
@@ -83,8 +85,8 @@ export default function LoginPage() {
 
           </div>
 
-          {/* Bottom Testimonial Quote Card */}
-          <div className="relative z-10 mt-auto pt-4">
+          {/* DESKTOP ONLY Testimonial Quote Card (Hidden on mobile < 1024px) */}
+          <div className="hidden lg:block relative z-10 mt-auto pt-4">
             <div className="bg-white/85 backdrop-blur-md border border-purple-100/80 rounded-2xl p-3.5 shadow-sm max-w-[250px]">
               <div className="text-[#7C3AED] font-serif text-xl leading-none mb-1">“</div>
               <p className="text-slate-600 text-[11px] leading-relaxed font-medium">
@@ -95,8 +97,8 @@ export default function LoginPage() {
 
         </div>
 
-        {/* ================= RIGHT SECTION (AUTHENTICATION UI) ================= */}
-        <div className="lg:col-span-6 bg-white p-6 sm:p-10 lg:p-12 flex flex-col justify-center h-full overflow-y-auto">
+        {/* ================= LOGIN SECTION (Bottom on Mobile / Right 50% on Desktop) ================= */}
+        <div className="lg:col-span-6 bg-white p-6 sm:p-10 lg:p-12 flex flex-col justify-center min-h-[420px] lg:h-full overflow-y-auto">
           <div className="w-full max-w-[340px] mx-auto space-y-4">
             
             {/* Header */}
@@ -192,7 +194,7 @@ export default function LoginPage() {
               {/* Sign In Button */}
               <button
                 type="submit"
-                className="w-full h-11 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-purple-500/20 active:scale-[0.99] cursor-pointer border-none mt-1"
+                className="w-full h-11 bg-[#7C3AED] hover:bg-[#6D28D9] text-[#FFFFFF] font-semibold rounded-xl text-xs transition-all shadow-md shadow-purple-500/20 active:scale-[0.99] cursor-pointer border-none mt-1"
               >
                 Sign in
               </button>
