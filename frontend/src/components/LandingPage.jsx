@@ -62,7 +62,7 @@ export default function LandingPage({ onLaunchApp }) {
                 className="button button-outline" 
                 onClick={signOut} 
                 aria-label="Sign Out"
-                style={{ borderColor: "rgba(239, 68, 68, 0.35)", color: "#ffffff", cursor: "pointer" }}
+                style={{ borderColor: "rgba(239, 68, 68, 0.35)", color: "#080530ff", cursor: "pointer" }}
               >
                 Sign Out
               </button>
