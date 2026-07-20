@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function LandingPage({ onLaunchApp }) {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   const handleLaunchConsole = () => {
     if (user) {
@@ -48,7 +48,7 @@ export default function LandingPage({ onLaunchApp }) {
           <div className="brand" aria-label="BizScraper Pro Brand Logo">
             Biz<span>Scraper</span> Pro
           </div>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
             <button
               className="button button-outline"
               style={{ borderColor: "rgba(255, 255, 255, 0.3)", cursor: "pointer" }}
@@ -57,9 +57,25 @@ export default function LandingPage({ onLaunchApp }) {
             >
               Launch Console
             </button>
-            <button className="button button-outline" onClick={() => navigate('/login')} aria-label="Create Account">
-              Create Account
-            </button>
+            {user ? (
+              <button 
+                className="button button-outline" 
+                onClick={signOut} 
+                aria-label="Sign Out"
+                style={{ borderColor: "#ef4444", color: "#f87171", cursor: "pointer" }}
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button 
+                className="button button-outline" 
+                onClick={() => navigate('/login')} 
+                aria-label="Sign In / Create Account"
+                style={{ cursor: "pointer" }}
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </nav>
 

@@ -178,24 +178,13 @@ export default function ConsolePage({ onBackToLanding }) {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#475569] px-12 py-12 flex flex-col justify-between" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-white text-[#475569] px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-12 flex flex-col justify-between" style={{ fontFamily: "'Inter', sans-serif" }}>
       
       {/* 1. Header Zone */}
-      <header className="flex items-start justify-between pb-4 border-b border-[#CBD5E1]">
-        <div style={{ display:'flex', justifyContent:'flex-end', 
-                      alignItems:'center', gap:'12px', padding:'8px 16px',
-                      borderBottom:'1px solid #2a2a2a' }}>
-          <span style={{ color:'#888', fontSize:'13px' }}>{user?.email}</span>
-          <button onClick={signOut}
-            style={{ padding:'6px 14px', background:'#ff4444', color:'#fff',
-                     border:'none', borderRadius:'6px', cursor:'pointer',
-                     fontSize:'13px' }}>
-            Sign Out
-          </button>
-        </div>
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="space-y-1">
           <h1 
-            className="text-[29px] font-medium text-[#0f172a] leading-none tracking-tight"
+            className="text-2xl sm:text-[29px] font-medium text-[#0f172a] leading-none tracking-tight"
             style={{ fontFamily: "'Fraunces', serif" }}
           >
             Biz<span className="text-[#1A56DB]">Scraper</span> Pro
@@ -207,14 +196,32 @@ export default function ConsolePage({ onBackToLanding }) {
             Local Business Data Extractor
           </p>
         </div>
-        <button
-          onClick={onBackToLanding}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] border border-[#CBD5E1] hover:bg-[#EFF6FF]/50 hover:text-[#1A56DB] hover:border-[#1A56DB]/50 text-xs font-medium text-[#475569] transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none"
-          style={{ fontFamily: "'Inter', sans-serif" }}
-        >
-          <ArrowLeft size={13} />
-          Back to Landing
-        </button>
+
+        {/* User Auth & Navigation Actions */}
+        <div className="flex items-center flex-wrap gap-2.5 sm:gap-3">
+          {user?.email && (
+            <span className="text-xs text-slate-600 font-medium bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 max-w-[180px] sm:max-w-xs truncate">
+              {user.email}
+            </span>
+          )}
+
+          <button
+            onClick={signOut}
+            className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer border-none active:scale-[0.98]"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            Sign Out
+          </button>
+
+          <button
+            onClick={onBackToLanding}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#CBD5E1] hover:bg-[#EFF6FF]/50 hover:text-[#1A56DB] hover:border-[#1A56DB]/50 text-xs font-medium text-[#475569] transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            <ArrowLeft size={13} />
+            Back to Landing
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 py-8 space-y-8">
