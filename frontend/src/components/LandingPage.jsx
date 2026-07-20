@@ -1,8 +1,21 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import "./LandingPage.css";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function LandingPage({ onLaunchApp }) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleLaunchConsole = () => {
+    if (user) {
+      navigate('/console');
+    } else {
+      navigate('/login');
+    }
+  };
+
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [showPopup, setShowPopup] = useState(true);
@@ -39,14 +52,14 @@ export default function LandingPage({ onLaunchApp }) {
             <button
               className="button button-outline"
               style={{ borderColor: "rgba(255, 255, 255, 0.3)", cursor: "pointer" }}
-              onClick={onLaunchApp}
+              onClick={handleLaunchConsole}
               aria-label="Launch Scraper Console Workspace"
             >
               Launch Console
             </button>
-            <a className="button button-outline" href="#waitlist" aria-label="Request early access">
-              Request access
-            </a>
+            <button className="button button-outline" onClick={() => navigate('/login')} aria-label="Create Account">
+              Create Account
+            </button>
           </div>
         </nav>
 

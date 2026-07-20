@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Check, Download, ArrowLeft, Loader2, Search, MapPin, ExternalLink, RotateCcw, RotateCw } from "lucide-react";
 import { searchBusinesses, exportCSV } from "../services/api";
+import { useAuth } from '../context/AuthContext';
 
 export default function ConsolePage({ onBackToLanding }) {
+  const { user, signOut } = useAuth();
   // Console state management
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
@@ -180,6 +182,17 @@ export default function ConsolePage({ onBackToLanding }) {
       
       {/* 1. Header Zone */}
       <header className="flex items-start justify-between pb-4 border-b border-[#CBD5E1]">
+        <div style={{ display:'flex', justifyContent:'flex-end', 
+                      alignItems:'center', gap:'12px', padding:'8px 16px',
+                      borderBottom:'1px solid #2a2a2a' }}>
+          <span style={{ color:'#888', fontSize:'13px' }}>{user?.email}</span>
+          <button onClick={signOut}
+            style={{ padding:'6px 14px', background:'#ff4444', color:'#fff',
+                     border:'none', borderRadius:'6px', cursor:'pointer',
+                     fontSize:'13px' }}>
+            Sign Out
+          </button>
+        </div>
         <div className="space-y-1">
           <h1 
             className="text-[29px] font-medium text-[#0f172a] leading-none tracking-tight"
