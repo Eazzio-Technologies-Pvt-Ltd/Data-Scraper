@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Check, Download, ArrowLeft, Loader2, Search, MapPin, ExternalLink, RotateCcw, RotateCw } from "lucide-react";
 import { searchBusinesses, exportCSV } from "../services/api";
 import { useAuth } from '../context/AuthContext';
+import { ConveyorLoop } from "@/components/ui/conveyor-loop";
+
 
 export default function ConsolePage({ onBackToLanding }) {
   const { user, signOut } = useAuth();
@@ -179,17 +181,17 @@ export default function ConsolePage({ onBackToLanding }) {
 
   return (
     <div className="min-h-screen bg-white text-[#475569] px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-12 flex flex-col justify-between" style={{ fontFamily: "'Inter', sans-serif" }}>
-      
+
       {/* 1. Header Zone */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="space-y-1">
-          <h1 
+          <h1
             className="text-2xl sm:text-[29px] font-medium text-[#0f172a] leading-none tracking-tight"
             style={{ fontFamily: "'Fraunces', serif" }}
           >
             Biz<span className="text-[#1A56DB]">Scraper</span> Pro
           </h1>
-          <p 
+          <p
             className="text-[10px] font-semibold uppercase tracking-wider text-[#475569]"
             style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em" }}
           >
@@ -225,7 +227,7 @@ export default function ConsolePage({ onBackToLanding }) {
       </header>
 
       <main className="flex-1 py-8 space-y-8">
-        
+
         {/* Search Directory Utility Row */}
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full text-[10px] uppercase tracking-wider text-[#475569] mb-4" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
           <span className="whitespace-nowrap font-bold text-[#0F172A]">SEARCH DIRECTORY</span>
@@ -240,7 +242,7 @@ export default function ConsolePage({ onBackToLanding }) {
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 w-full">
             {/* Location Input */}
             <div className="flex-1 w-full space-y-1">
-              <label 
+              <label
                 className="block text-[10px] font-bold uppercase tracking-wider text-[#475569] mb-1.5 ml-0.5"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
@@ -254,8 +256,8 @@ export default function ConsolePage({ onBackToLanding }) {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className={`w-full h-[42px] pl-9 pr-3 rounded-[6px] border bg-[#F8FAFC] text-[#0f172a] text-[13px] outline-none transition-all
-                    ${errors.location 
-                      ? "border-[#DC2626] focus:border-[#DC2626] focus:ring-[3px] focus:ring-red-50" 
+                    ${errors.location
+                      ? "border-[#DC2626] focus:border-[#DC2626] focus:ring-[3px] focus:ring-red-50"
                       : "border-[#CBD5E1] focus:border-[#1a56db] focus:ring-[3px] focus:ring-[#EFF6FF] focus:bg-white"}`}
                 />
               </div>
@@ -266,7 +268,7 @@ export default function ConsolePage({ onBackToLanding }) {
 
             {/* Keyword Input */}
             <div className="flex-1 w-full space-y-1">
-              <label 
+              <label
                 className="block text-[10px] font-bold uppercase tracking-wider text-[#475569] mb-1.5 ml-0.5"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
@@ -280,8 +282,8 @@ export default function ConsolePage({ onBackToLanding }) {
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   className={`w-full h-[42px] pl-9 pr-3 rounded-[6px] border bg-[#F8FAFC] text-[#0f172a] text-[13px] outline-none transition-all
-                    ${errors.keyword 
-                      ? "border-[#DC2626] focus:border-[#DC2626] focus:ring-[3px] focus:ring-red-50" 
+                    ${errors.keyword
+                      ? "border-[#DC2626] focus:border-[#DC2626] focus:ring-[3px] focus:ring-red-50"
                       : "border-[#CBD5E1] focus:border-[#1a56db] focus:ring-[3px] focus:ring-[#EFF6FF] focus:bg-white"}`}
                 />
               </div>
@@ -316,12 +318,12 @@ export default function ConsolePage({ onBackToLanding }) {
         {results.length > 0 && (
           <section className="pt-2" aria-label="Filter and Sort results">
             <div className="flex flex-col md:flex-row items-stretch gap-6">
-              
+
               {/* Left Side: Filter Options */}
               <div className="flex-1 space-y-4">
                 {/* City Row */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span 
+                  <span
                     className="text-[10px] font-bold text-[#475569] uppercase tracking-wider w-[55px] text-left shrink-0"
                     style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
@@ -357,7 +359,7 @@ export default function ConsolePage({ onBackToLanding }) {
 
                 {/* Type Row */}
                 <div className="flex items-center gap-2 flex-wrap pt-2">
-                  <span 
+                  <span
                     className="text-[10px] font-bold text-[#475569] uppercase tracking-wider w-[55px] text-left shrink-0"
                     style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
@@ -411,7 +413,7 @@ export default function ConsolePage({ onBackToLanding }) {
 
               {/* Right Side: Sorting Options */}
               <div className="w-full md:w-auto min-w-[240px] flex flex-col justify-start gap-3 pl-0 md:pl-2">
-                <span 
+                <span
                   className="text-[10px] font-bold text-[#475569] uppercase tracking-wider block mt-1"
                   style={{ fontFamily: "'JetBrains Mono', monospace" }}
                 >
@@ -492,7 +494,7 @@ export default function ConsolePage({ onBackToLanding }) {
             </div>
 
             {/* Active Filter Summary */}
-            <div 
+            <div
               className="text-[12px] text-[#475569]/80 flex items-center gap-1.5 pt-4"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
@@ -521,8 +523,8 @@ export default function ConsolePage({ onBackToLanding }) {
         {/* 4. Table Zone */}
         <section className="pt-2" aria-live="polite">
           {uiState === "LOADING" && (
-            <div className="flex flex-col items-center gap-2 py-16">
-              <Loader2 className="w-8 h-8 text-[#1a56db] animate-spin" />
+            <div className="flex flex-col items-center gap-3 py-16">
+              <ConveyorLoop className="text-[#1a56db]" trackLength={12} />
               <p className="text-[13px] text-[#475569] font-medium">Extracting records from location indexes...</p>
             </div>
           )}
@@ -532,7 +534,7 @@ export default function ConsolePage({ onBackToLanding }) {
               {/* Table Action Row */}
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
                 <div className="space-y-1">
-                  <div 
+                  <div
                     className="text-[10px] font-bold uppercase tracking-wider text-[#475569]"
                     style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
@@ -586,8 +588,8 @@ export default function ConsolePage({ onBackToLanding }) {
                   <thead>
                     <tr className="bg-[#1a56db] text-white">
                       {activeColumns.name && (
-                        <th 
-                          scope="col" 
+                        <th
+                          scope="col"
                           onClick={() => handleSort('name')}
                           className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-white cursor-pointer select-none group border-b border-[#CBD5E1]"
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
@@ -614,8 +616,8 @@ export default function ConsolePage({ onBackToLanding }) {
                         </th>
                       )}
                       {activeColumns.city && (
-                        <th 
-                          scope="col" 
+                        <th
+                          scope="col"
                           className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-white border-b border-[#CBD5E1]"
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
                         >
@@ -636,8 +638,8 @@ export default function ConsolePage({ onBackToLanding }) {
                         </th>
                       )}
                       {activeColumns.rating && (
-                        <th 
-                          scope="col" 
+                        <th
+                          scope="col"
                           onClick={() => handleSort('rating')}
                           className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-white w-28 cursor-pointer select-none group border-b border-[#CBD5E1]"
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
@@ -664,8 +666,8 @@ export default function ConsolePage({ onBackToLanding }) {
                         </th>
                       )}
                       {activeColumns.type && (
-                        <th 
-                          scope="col" 
+                        <th
+                          scope="col"
                           className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-white border-b border-[#CBD5E1]"
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
                         >
@@ -686,8 +688,8 @@ export default function ConsolePage({ onBackToLanding }) {
                         </th>
                       )}
                       {activeColumns.phone && (
-                        <th 
-                          scope="col" 
+                        <th
+                          scope="col"
                           className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-white border-b border-[#CBD5E1]"
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
                         >
@@ -708,8 +710,8 @@ export default function ConsolePage({ onBackToLanding }) {
                         </th>
                       )}
                       {activeColumns.address && (
-                        <th 
-                          scope="col" 
+                        <th
+                          scope="col"
                           className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-white border-b border-[#CBD5E1]"
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
                         >
@@ -730,8 +732,8 @@ export default function ConsolePage({ onBackToLanding }) {
                         </th>
                       )}
                       {activeColumns.link && (
-                        <th 
-                          scope="col" 
+                        <th
+                          scope="col"
                           className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-white border-b border-[#CBD5E1] w-12 text-center"
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
                         >
@@ -799,9 +801,9 @@ export default function ConsolePage({ onBackToLanding }) {
                         {activeColumns.link && (
                           <td className="px-6 py-2 text-center">
                             {r.maps_link ? (
-                              <a 
-                                href={r.maps_link} 
-                                target="_blank" 
+                              <a
+                                href={r.maps_link}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center justify-center w-7 h-7 rounded-[4px] border border-[#CBD5E1] text-[#475569] hover:bg-[#EFF6FF] hover:text-[#1A56DB] hover:border-[#1A56DB] transition-all focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none"
                                 title="View on Google Maps"
