@@ -1,22 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, Download, ArrowLeft, Loader2, Search, MapPin, ExternalLink, RotateCcw, RotateCw } from "lucide-react";
 import { searchBusinesses, exportCSV } from "../services/api";
 import { useAuth } from '../context/AuthContext';
 import { ConveyorLoop } from "@/components/ui/conveyor-loop";
+import useConsoleTimeout from "../hooks/useConsoleTimeout";
 
 
 export default function ConsolePage({ onBackToLanding }) {
   const { user, signOut } = useAuth();
+  
+  // Helper to parse saved search state synchronously
+  const savedState = (() => {
+    const savedStateStr = sessionStorage.getItem("lastSearchState");
+    if (savedStateStr) {
+      try {
+        return JSON.parse(savedStateStr);
+      } catch (e) {
+        console.error("Error restoring search state:", e);
+      }
+    }
+    return null;
+  })();
+
   // Console state management
-  const [keyword, setKeyword] = useState("");
-  const [location, setLocation] = useState("");
-  const [results, setResults] = useState([]);
-  const [filteredResults, setFilteredResults] = useState([]);
+  const [keyword, setKeyword] = useState(() => savedState?.keyword || "");
+  const [location, setLocation] = useState(() => savedState?.location || "");
+  const [results, setResults] = useState(() => savedState?.results || []);
+  const [filteredResults, setFilteredResults] = useState(() => savedState?.results || []);
   const [isLoading, setIsLoading] = useState(false);
-  const [uiState, setUiState] = useState("IDLE"); // IDLE, LOADING, RESULTS, EMPTY, ERROR
+  const [uiState, setUiState] = useState(() => savedState?.results?.length ? "RESULTS" : "IDLE");
   const [selectedCities, setSelectedCities] = useState(new Set());
   const [selectedTypes, setSelectedTypes] = useState(new Set());
-  const [lastSearch, setLastSearch] = useState({ keyword: "", location: "" });
+  const [lastSearch, setLastSearch] = useState(() => ({
+    keyword: savedState?.keyword || "",
+    location: savedState?.location || ""
+  }));
+
+  const { showWarning } = useConsoleTimeout(() => ({
+    location,
+    keyword,
+    results
+  }));
+  const [isWarningDismissed, setIsWarningDismissed] = useState(false);
+
+  useEffect(() => {
+    sessionStorage.removeItem("lastSearchState");
+  }, []);
 
   // Input validation errors
   const [errors, setErrors] = useState({ keyword: false, location: false });
@@ -181,6 +210,19 @@ export default function ConsolePage({ onBackToLanding }) {
 
   return (
     <div className="min-h-screen bg-white text-[#475569] px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-12 flex flex-col justify-between" style={{ fontFamily: "'Inter', sans-serif" }}>
+      {showWarning && !isWarningDismissed && (
+        <div className="fixed top-0 left-0 right-0 bg-amber-500 text-amber-950 px-4 py-3 flex items-center justify-between z-50 shadow-md">
+          <span className="text-sm font-medium">
+            ⚠️ You'll be automatically exited from the console in 5 minutes due to session limit.
+          </span>
+          <button
+            onClick={() => setIsWarningDismissed(true)}
+            className="px-3 py-1 bg-amber-950 text-amber-50 rounded text-xs font-semibold hover:bg-amber-900 transition-colors focus:outline-none"
+          >
+            Got it
+          </button>
+        </div>
+      )}
 
       {/* 1. Header Zone */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">

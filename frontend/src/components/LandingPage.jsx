@@ -10,6 +10,8 @@ export default function LandingPage({ onLaunchApp }) {
 
   const handleLaunchConsole = () => {
     if (user) {
+      sessionStorage.setItem("lastActiveTime", Date.now().toString());
+      sessionStorage.removeItem("consoleEntryTime");
       navigate('/console');
     } else {
       navigate('/login');
