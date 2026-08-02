@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/console' }
+      options: { redirectTo: window.location.origin }
     })
   }
 
