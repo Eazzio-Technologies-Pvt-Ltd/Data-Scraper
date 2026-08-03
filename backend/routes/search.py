@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from database.db import get_db
 from database.cache import make_cache_key, get_cached_result, save_to_cache
@@ -6,15 +6,25 @@ from services.google_places import search_places
 from services.data_processor import process_results
 from models.response import SearchResponse
 from models.business import BusinessModel
+from utils.limiter import limiter
+from utils.recaptcha import verify_recaptcha
 
 router = APIRouter()
 
 @router.get("/search", response_model=SearchResponse)
+@limiter.limit("10/minute")
 async def search_businesses(
+    request: Request,
     keyword:  str = Query(..., min_length=1),
     location: str = Query(..., min_length=1),
+    recaptcha_token: str = Query(...),
     db: Session = Depends(get_db)
 ):
+    # Verify reCAPTCHA token
+    is_valid = await verify_recaptcha(recaptcha_token)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="CAPTCHA verification failed")
+
     keyword  = keyword.strip()
     location = location.strip()
     if not keyword or not location:

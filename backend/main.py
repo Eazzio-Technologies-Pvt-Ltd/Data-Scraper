@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from utils.limiter import limiter
 from routes.search import router as search_router
 from routes.export import router as export_router
 from database.db import init_db
@@ -12,7 +12,6 @@ import os
 load_dotenv()
 init_db()
 
-limiter = Limiter(key_func=get_remote_address)
 app     = FastAPI(title="BizScraper Pro API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

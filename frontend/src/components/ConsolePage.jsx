@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Check, Download, ArrowLeft, Loader2, Search, MapPin, ExternalLink, RotateCcw, RotateCw } from "lucide-react";
 import { searchBusinesses, exportCSV } from "../services/api";
 import { useAuth } from '../context/AuthContext';
 import { ConveyorLoop } from "@/components/ui/conveyor-loop";
 import useConsoleTimeout from "../hooks/useConsoleTimeout";
+import ReCAPTCHA from "react-google-recaptcha";
 
 
 export default function ConsolePage({ onBackToLanding }) {
@@ -35,6 +36,9 @@ export default function ConsolePage({ onBackToLanding }) {
     keyword: savedState?.keyword || "",
     location: savedState?.location || ""
   }));
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
+  const [searchError, setSearchError] = useState(null);
+  const recaptchaRef = useRef(null);
 
   const { showWarning } = useConsoleTimeout(() => ({
     location,
@@ -96,16 +100,32 @@ export default function ConsolePage({ onBackToLanding }) {
     ]);
     setHistoryIndex(0);
 
+    setSearchError(null);
     try {
-      const data = await searchBusinesses(keyword, location);
+      const data = await searchBusinesses(keyword, location, recaptchaToken);
       setResults(data.results || []);
       setFilteredResults(data.results || []);
       setUiState(data.results?.length ? "RESULTS" : "EMPTY");
     } catch (err) {
       console.error(err);
+      let errorMsg = "Could not contact local scraping server. Verify backend configurations.";
+      if (err.response) {
+        if (err.response.status === 400) {
+          errorMsg = err.response.data?.detail || "Verification failed, please try again.";
+        } else if (err.response.status === 429) {
+          errorMsg = "Too many searches. Please wait a minute.";
+        } else if (err.response.data?.detail) {
+          errorMsg = err.response.data.detail;
+        }
+      }
+      setSearchError(errorMsg);
       setUiState("ERROR");
     } finally {
       setIsLoading(false);
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
+      setRecaptchaToken(null);
     }
   };
 
@@ -334,11 +354,20 @@ export default function ConsolePage({ onBackToLanding }) {
               )}
             </div>
 
+            {/* ReCAPTCHA Widget */}
+            <div className="flex justify-center sm:justify-start mb-[1px]">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                onChange={(token) => setRecaptchaToken(token)}
+              />
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full sm:w-[160px] h-[42px] rounded-[6px] bg-[#1a56db] text-white text-[13px] font-medium hover:bg-[#1e40af] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 mb-[1px] focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none"
+              disabled={isLoading || !recaptchaToken}
+              className="w-full sm:w-[160px] h-[42px] rounded-[6px] bg-[#1a56db] text-white text-[13px] font-medium hover:bg-[#1e40af] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 mb-[1px] focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               {isLoading ? (
@@ -880,7 +909,7 @@ export default function ConsolePage({ onBackToLanding }) {
           {uiState === "ERROR" && (
             <div className="text-center py-16 border border-dashed border-[#CBD5E1] rounded-[6px] bg-red-50">
               <p className="text-[14px] font-semibold text-[#DC2626]">Extraction process aborted.</p>
-              <p className="text-[12px] text-red-700/80 mt-1">Could not contact local scraping server. Verify backend configurations.</p>
+              <p className="text-[12px] text-red-700/80 mt-1">{searchError || "Could not contact local scraping server. Verify backend configurations."}</p>
             </div>
           )}
         </section>
