@@ -16,6 +16,10 @@ app     = FastAPI(title="BizScraper Pro API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 origins = [o.strip() for o in origins]
 
