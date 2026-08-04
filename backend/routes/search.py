@@ -17,13 +17,14 @@ async def search_businesses(
     request: Request,
     keyword:  str = Query(..., min_length=1),
     location: str = Query(..., min_length=1),
-    recaptcha_token: str = Query(...),
+    recaptcha_token: str = Query(None),
     db: Session = Depends(get_db)
 ):
-    # Verify reCAPTCHA token
-    is_valid = await verify_recaptcha(recaptcha_token)
-    if not is_valid:
-        raise HTTPException(status_code=400, detail="CAPTCHA verification failed")
+    # Verify reCAPTCHA token if provided
+    if recaptcha_token is not None:
+        is_valid = await verify_recaptcha(recaptcha_token)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail="CAPTCHA verification failed")
 
     keyword  = keyword.strip()
     location = location.strip()

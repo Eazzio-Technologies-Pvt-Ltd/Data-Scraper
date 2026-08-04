@@ -4,7 +4,7 @@ import { searchBusinesses, exportCSV } from "../services/api";
 import { useAuth } from '../context/AuthContext';
 import { ConveyorLoop } from "@/components/ui/conveyor-loop";
 import useConsoleTimeout from "../hooks/useConsoleTimeout";
-import ReCAPTCHA from "react-google-recaptcha";
+import CaptchaGate from "./CaptchaGate";
 
 
 export default function ConsolePage({ onBackToLanding }) {
@@ -36,9 +36,8 @@ export default function ConsolePage({ onBackToLanding }) {
     keyword: savedState?.keyword || "",
     location: savedState?.location || ""
   }));
-  const [recaptchaToken, setRecaptchaToken] = useState(null);
+  const [isVerified, setIsVerified] = useState(() => sessionStorage.getItem('captchaVerified') === 'true');
   const [searchError, setSearchError] = useState(null);
-  const recaptchaRef = useRef(null);
 
   const { showWarning } = useConsoleTimeout(() => ({
     location,
@@ -102,7 +101,7 @@ export default function ConsolePage({ onBackToLanding }) {
 
     setSearchError(null);
     try {
-      const data = await searchBusinesses(keyword, location, recaptchaToken);
+      const data = await searchBusinesses(keyword, location);
       setResults(data.results || []);
       setFilteredResults(data.results || []);
       setUiState(data.results?.length ? "RESULTS" : "EMPTY");
@@ -122,10 +121,6 @@ export default function ConsolePage({ onBackToLanding }) {
       setUiState("ERROR");
     } finally {
       setIsLoading(false);
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-      setRecaptchaToken(null);
     }
   };
 
@@ -229,7 +224,15 @@ export default function ConsolePage({ onBackToLanding }) {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#475569] px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-12 flex flex-col justify-between" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <>
+      <div
+        className="min-h-screen bg-white text-[#475569] px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-12 flex flex-col justify-between"
+        style={{
+          fontFamily: "'Inter', sans-serif",
+          filter: !isVerified ? "blur(6px)" : "none",
+          pointerEvents: !isVerified ? "none" : "auto"
+        }}
+      >
       {showWarning && !isWarningDismissed && (
         <div className="fixed top-0 left-0 right-0 bg-amber-500 text-amber-950 px-4 py-3 flex items-center justify-between z-50 shadow-md">
           <span className="text-sm font-medium">
@@ -354,19 +357,10 @@ export default function ConsolePage({ onBackToLanding }) {
               )}
             </div>
 
-            {/* ReCAPTCHA Widget */}
-            <div className="flex justify-center sm:justify-start mb-[1px]">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                onChange={(token) => setRecaptchaToken(token)}
-              />
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading || !recaptchaToken}
+              disabled={isLoading}
               className="w-full sm:w-[160px] h-[42px] rounded-[6px] bg-[#1a56db] text-white text-[13px] font-medium hover:bg-[#1e40af] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 mb-[1px] focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
@@ -922,6 +916,15 @@ export default function ConsolePage({ onBackToLanding }) {
         <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>Confidential Workspace</span>
       </footer>
 
-    </div>
+      </div>
+      {!isVerified && (
+        <CaptchaGate
+          onVerified={() => {
+            setIsVerified(true);
+            sessionStorage.setItem("captchaVerified", "true");
+          }}
+        />
+      )}
+    </>
   );
 }
