@@ -2,9 +2,9 @@ import axios from "axios";
 
 const BASE = import.meta.env.VITE_API_BASE_URL;
 
-export const searchBusinesses = async (keyword, location, recaptchaToken) => {
+export const searchBusinesses = async (keyword, location) => {
   const res = await axios.get(`${BASE}/api/search`, {
-    params: { keyword, location, recaptcha_token: recaptchaToken },
+    params: { keyword, location },
   });
   return res.data;
 };
