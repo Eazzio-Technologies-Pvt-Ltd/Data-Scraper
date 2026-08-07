@@ -8,22 +8,26 @@ It queries the Google Places API to extract accurate, structured business listin
 
 ## 🏗️ Architecture & Data Flow
 
-BizScraper Pro uses a decoupled 3-layer architecture: a **React.js Frontend** communicating with a **Python FastAPI Backend** which handles caching in **SQLite** and queries the **Google Places API**.
+BizScraper Pro uses a decoupled 3-layer architecture: a **React.js Frontend** (secured with Supabase Auth & reCAPTCHA) communicating with a **Python FastAPI Backend** which handles caching in **SQLite** and queries the **Google Places API**.
 
 ```mermaid
 graph TD
-    User([User]) -->|Inputs Search / Filters| FE[Presentation Layer: React + Tailwind]
-    FE -->|GET /api/search| BE[Application Layer: FastAPI]
-    BE -->|Query cache| DB[(Data Layer: SQLite Cache)]
-    DB -->|Cache Hit: Return Cached JSON| BE
-    BE -->|Cache Miss: HTTP Requests| GoogleAPI[Google Places API]
-    GoogleAPI -->|Return Places Data| BE
-    BE -->|Format & Clean data| Proc[Data Processor]
-    Proc -->|Write to cache| DB
-    Proc -->|Return JSON Array| FE
-    FE -->|Client-side filter & Sort| FE
-    FE -->|Download CSV| CSV[Pandas CSV Generation]
+    User([User]) -->|OAuth Login| Auth[Supabase Auth]
+    Auth -->|Access granted| FE[React Frontend]
+    User -->|Solve CAPTCHA| Gate[Captcha Gate]
+    FE -->|GET /api/search + token| BE[FastAPI Backend]
+    BE -->|Verify CAPTCHA| Recaptcha[Google reCAPTCHA API]
+    BE -->|Query cache| DB[(SQLite Cache)]
+    DB -->|Cache Hit| BE
+    BE -->|Cache Miss| GoogleAPI[Google Places API]
+    GoogleAPI --> BE
+    BE -->|Format & Clean| Proc[Data Processor]
+    Proc -->|Write cache| DB
+    Proc -->|Return JSON| FE
+    FE -->|Filter & Sort| FE
+    FE -->|Download CSV| CSV[CSV Export]
 ```
+
 
 ---
 
@@ -33,17 +37,19 @@ graph TD
 * **Core:** React.js (v18+) & Vite (v5+)
 * **Styling:** Tailwind CSS (v3+)
 * **State & Fetching:** Axios (HTTP client), React Hot Toast (UI notifications)
+* **Authentication:** Supabase Auth (Google OAuth)
+* **Security:** react-google-recaptcha
 * **Tables:** TanStack Table (v8) — handles sorting, client-side filtering, and pagination
 
 ### Backend (FastAPI Server)
 * **Web Framework:** Python FastAPI (v0.110+) & Uvicorn (ASGI server)
 * **Data Processing:** Pandas (v2+) — cleans JSON results and generates CSV streams
 * **Caching & Storage:** SQLite Database + SQLAlchemy (ORM)
-* **Rate Limiting:** SlowAPI (limit to 30 requests/minute per IP)
+* **Rate Limiting:** SlowAPI (limit to 10 requests/minute per IP)
+* **Security:** reCAPTCHA server-side verification (via httpx)
 * **Scraping Layer:** Google Places (Text Search + Place Details API) & BeautifulSoup4 (HTML parser fallback)
 
 ---
-
 ## 📂 Project Structure
 
 ```text
@@ -57,19 +63,22 @@ bizscraper-pro/
 │   └── BizScraper_Pro_UXDOC.md   # UI/UX & Styling Specification
 ├── frontend/                     # Frontend source (Vite + React)
 │   ├── src/
-│   │   ├── components/           # SearchBar, ResultsTable, FilterChips, ExportButton
+│   │   ├── components/           # LandingPage, ConsolePage, LoginPage, ProtectedRoute, CaptchaGate, etc.
+│   │   ├── context/              # AuthContext for Supabase Google OAuth
+│   │   ├── lib/                  # supabaseClient and utility helpers
 │   │   ├── services/api.js       # Axios client and route fetchers
-│   │   ├── App.jsx               # Main state controller
+│   │   ├── App.jsx               # Main state controller and route definitions
 │   │   └── main.jsx              # React Entry point
-│   ├── .env                      # Holds VITE_API_BASE_URL
+│   ├── .env                      # Holds configuration variables
 │   └── vite.config.js
 └── backend/                      # Backend source (Python FastAPI)
-    ├── routes/search.py          # /api/search & /api/export router
+    ├── routes/                   # Router definitions (search.py, export.py)
     ├── services/                 # Google API calling & data cleaning logic
-    ├── models/business.py        # Pydantic schemas for requests/responses
-    ├── database/cache.py         # SQLite caching operations
-    ├── main.py                   # FastAPI entry point & CORS configuration
-    ├── .env                      # Holds GOOGLE_API_KEY
+    ├── models/                   # Pydantic schemas for requests/responses
+    ├── database/                 # SQLite database & caching operations (db.py, cache.py)
+    ├── utils/                    # reCAPTCHA verification & rate limiter utilities
+    ├── main.py                   # FastAPI entry point, middlewares & CORS configuration
+    ├── .env                      # Holds secrets and credentials
     └── requirements.txt          # Python packages (fastapi, requests, pandas, etc.)
 ```
 
@@ -90,7 +99,6 @@ bizscraper-pro/
 * **Details:** Retrieves matching results from the cache, applies active frontend filters, and streams a clean CSV file using Pandas.
 
 ---
-
 ## ⚙️ Environment Variables Setup
 
 Create a `.env` file in the respective folders:
@@ -100,12 +108,16 @@ Create a `.env` file in the respective folders:
 GOOGLE_API_KEY=your_google_places_api_key
 CACHE_EXPIRY_HOURS=24
 MAX_RESULTS=60
-ALLOWED_ORIGIN=http://localhost:5173
+ALLOWED_ORIGINS=http://localhost:5173
+RECAPTCHA_SECRET_KEY=your_recaptcha_secret_key
 ```
 
 ### Frontend (`/frontend/.env`)
 ```env
 VITE_API_BASE_URL=http://localhost:8000
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_RECAPTCHA_SITE_KEY=your_recaptcha_site_key
 ```
 
 ---
