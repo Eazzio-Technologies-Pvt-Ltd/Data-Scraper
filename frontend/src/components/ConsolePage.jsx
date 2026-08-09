@@ -912,7 +912,7 @@ export default function ConsolePage({ onBackToLanding }) {
 
       {/* 5. Footer Zone */}
       <footer className="pt-8 border-t border-[#CBD5E1] flex justify-between items-center text-[11px] text-[#475569]">
-        <span>BizScraper Pro · v1.0.0</span>
+        <span>BizScraper Pro · v1.5.0</span>
         <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>Confidential Workspace</span>
       </footer>
 
