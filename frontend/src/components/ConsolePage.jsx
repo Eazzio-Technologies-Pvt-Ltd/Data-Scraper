@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { ConveyorLoop } from "@/components/ui/conveyor-loop";
 import useConsoleTimeout from "../hooks/useConsoleTimeout";
 import CaptchaGate from "./CaptchaGate";
+import SummaryCard from "./SummaryCard";
 
 
 export default function ConsolePage({ onBackToLanding }) {
@@ -38,6 +39,7 @@ export default function ConsolePage({ onBackToLanding }) {
   }));
   const [isVerified, setIsVerified] = useState(() => sessionStorage.getItem('captchaVerified') === 'true');
   const [searchError, setSearchError] = useState(null);
+  const [summary, setSummary] = useState(null);
 
   const { showWarning } = useConsoleTimeout(() => ({
     location,
@@ -100,11 +102,13 @@ export default function ConsolePage({ onBackToLanding }) {
     setHistoryIndex(0);
 
     setSearchError(null);
+    setSummary(null);
     try {
       const data = await searchBusinesses(keyword, location);
       setResults(data.results || []);
       setFilteredResults(data.results || []);
       setUiState(data.results?.length ? "RESULTS" : "EMPTY");
+      setSummary(data.summary ?? null);
     } catch (err) {
       console.error(err);
       let errorMsg = "Could not contact local scraping server. Verify backend configurations.";
@@ -596,6 +600,7 @@ export default function ConsolePage({ onBackToLanding }) {
 
           {uiState === "RESULTS" && (
             <div className="space-y-4">
+              <SummaryCard summary={summary} />
               {/* Table Action Row */}
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
                 <div className="space-y-1">
