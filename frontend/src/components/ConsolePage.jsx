@@ -39,7 +39,8 @@ export default function ConsolePage({ onBackToLanding }) {
   }));
   const [isVerified, setIsVerified] = useState(() => sessionStorage.getItem('captchaVerified') === 'true');
   const [searchError, setSearchError] = useState(null);
-  const [summary, setSummary] = useState(null);
+  const [summaryResetKey, setSummaryResetKey] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const { showWarning } = useConsoleTimeout(() => ({
     location,
@@ -101,14 +102,14 @@ export default function ConsolePage({ onBackToLanding }) {
     ]);
     setHistoryIndex(0);
 
+    setSummaryResetKey(prev => prev + 1);
+    setFiltersOpen(false);
     setSearchError(null);
-    setSummary(null);
     try {
       const data = await searchBusinesses(keyword, location);
       setResults(data.results || []);
       setFilteredResults(data.results || []);
       setUiState(data.results?.length ? "RESULTS" : "EMPTY");
-      setSummary(data.summary ?? null);
     } catch (err) {
       console.error(err);
       let errorMsg = "Could not contact local scraping server. Verify backend configurations.";
@@ -386,183 +387,195 @@ export default function ConsolePage({ onBackToLanding }) {
         {/* 3. Filters & Sorting Zone */}
         {results.length > 0 && (
           <section className="pt-2" aria-label="Filter and Sort results">
-            <div className="flex flex-col md:flex-row items-stretch gap-6">
+            {/* Toggle button */}
+            <button
+              onClick={() => setFiltersOpen(prev => !prev)}
+              className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors mb-2 cursor-pointer bg-transparent border-none p-0"
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            >
+              {filtersOpen ? '▲' : '▼'} Filters &amp; Sort
+            </button>
 
-              {/* Left Side: Filter Options */}
-              <div className="flex-1 space-y-4">
-                {/* City Row */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span
-                    className="text-[10px] font-bold text-[#475569] uppercase tracking-wider w-[55px] text-left shrink-0"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    CITY:
-                  </span>
-                  <button
-                    onClick={handleClearCities}
-                    className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
-                      ${selectedCities.size === 0
-                        ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
-                        : "border-dashed border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC]"}`}
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    All
-                  </button>
-                  {uniqueCities.map((city) => {
-                    const active = selectedCities.has(city);
-                    return (
-                      <button
-                        key={city}
-                        onClick={() => handleToggleCity(city)}
-                        className={`text-[12px] px-3 py-1 rounded-[6px] border flex items-center gap-1.5 transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
-                          ${active
-                            ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
-                            : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
-                        style={{ fontFamily: "'Inter', sans-serif" }}
-                      >
-                        {active && <Check size={11} />} {city}
-                      </button>
-                    );
-                  })}
-                </div>
+            {/* Collapsible: City chips + Type chips + Sort buttons */}
+            {filtersOpen && (
+              <div className="flex flex-col md:flex-row items-stretch gap-6">
 
-                {/* Type Row */}
-                <div className="flex items-center gap-2 flex-wrap pt-2">
-                  <span
-                    className="text-[10px] font-bold text-[#475569] uppercase tracking-wider w-[55px] text-left shrink-0"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    TYPE:
-                  </span>
-                  <button
-                    onClick={handleClearTypes}
-                    className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
-                      ${selectedTypes.size === 0
-                        ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
-                        : "border-dashed border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC]"}`}
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    All
-                  </button>
-                  {uniqueTypes.map((type) => {
-                    const active = selectedTypes.has(type);
-                    return (
-                      <button
-                        key={type}
-                        onClick={() => handleToggleType(type)}
-                        className={`text-[12px] px-3 py-1 rounded-[6px] border flex items-center gap-1.5 transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
-                          ${active
-                            ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
-                            : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
-                        style={{ fontFamily: "'Inter', sans-serif" }}
-                      >
-                        {active && <Check size={11} />} {type}
-                      </button>
-                    );
-                  })}
-
-                  {/* Clear filters action */}
-                  {(selectedCities.size > 0 || selectedTypes.size > 0) && (
+                {/* Left Side: Filter Options */}
+                <div className="flex-1 space-y-4">
+                  {/* City Row */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className="text-[10px] font-bold text-[#475569] uppercase tracking-wider w-[55px] text-left shrink-0"
+                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      CITY:
+                    </span>
                     <button
-                      onClick={() => {
-                        handleClearCities();
-                        handleClearTypes();
-                      }}
-                      className="text-[11px] font-medium text-[#1A56DB] hover:text-[#1e40af] hover:underline transition-colors ml-auto cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#EFF6FF] px-2 py-1 rounded"
+                      onClick={handleClearCities}
+                      className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
+                        ${selectedCities.size === 0
+                          ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
+                          : "border-dashed border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC]"}`}
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
-                      Clear filters
+                      All
                     </button>
-                  )}
+                    {uniqueCities.map((city) => {
+                      const active = selectedCities.has(city);
+                      return (
+                        <button
+                          key={city}
+                          onClick={() => handleToggleCity(city)}
+                          className={`text-[12px] px-3 py-1 rounded-[6px] border flex items-center gap-1.5 transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
+                            ${active
+                              ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
+                              : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
+                          style={{ fontFamily: "'Inter', sans-serif" }}
+                        >
+                          {active && <Check size={11} />} {city}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Type Row */}
+                  <div className="flex items-center gap-2 flex-wrap pt-2">
+                    <span
+                      className="text-[10px] font-bold text-[#475569] uppercase tracking-wider w-[55px] text-left shrink-0"
+                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      TYPE:
+                    </span>
+                    <button
+                      onClick={handleClearTypes}
+                      className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
+                        ${selectedTypes.size === 0
+                          ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
+                          : "border-dashed border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F8FAFC]"}`}
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      All
+                    </button>
+                    {uniqueTypes.map((type) => {
+                      const active = selectedTypes.has(type);
+                      return (
+                        <button
+                          key={type}
+                          onClick={() => handleToggleType(type)}
+                          className={`text-[12px] px-3 py-1 rounded-[6px] border flex items-center gap-1.5 transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
+                            ${active
+                              ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
+                              : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
+                          style={{ fontFamily: "'Inter', sans-serif" }}
+                        >
+                          {active && <Check size={11} />} {type}
+                        </button>
+                      );
+                    })}
+
+                    {/* Clear filters action */}
+                    {(selectedCities.size > 0 || selectedTypes.size > 0) && (
+                      <button
+                        onClick={() => {
+                          handleClearCities();
+                          handleClearTypes();
+                        }}
+                        className="text-[11px] font-medium text-[#1A56DB] hover:text-[#1e40af] hover:underline transition-colors ml-auto cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#EFF6FF] px-2 py-1 rounded"
+                        style={{ fontFamily: "'Inter', sans-serif" }}
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Middle line separator (not very dark) */}
-              <div className="hidden md:block w-px bg-[#CBD5E1]/60 self-stretch my-1"></div>
+                {/* Middle line separator (not very dark) */}
+                <div className="hidden md:block w-px bg-[#CBD5E1]/60 self-stretch my-1"></div>
 
-              {/* Right Side: Sorting Options */}
-              <div className="w-full md:w-auto min-w-[240px] flex flex-col justify-start gap-3 pl-0 md:pl-2">
-                <span
-                  className="text-[10px] font-bold text-[#475569] uppercase tracking-wider block mt-1"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
-                  SORT BY:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => {
-                      if (sortField === "name" && sortOrder === "asc") {
-                        setSortField(null);
-                      } else {
-                        setSortField("name");
-                        setSortOrder("asc");
-                      }
-                    }}
-                    className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
-                      ${sortField === "name" && sortOrder === "asc"
-                        ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
-                        : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
-                    style={{ fontFamily: "'Inter', sans-serif" }}
+                {/* Right Side: Sorting Options */}
+                <div className="w-full md:w-auto min-w-[240px] flex flex-col justify-start gap-3 pl-0 md:pl-2">
+                  <span
+                    className="text-[10px] font-bold text-[#475569] uppercase tracking-wider block mt-1"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
-                    Name (A-Z)
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (sortField === "name" && sortOrder === "desc") {
-                        setSortField(null);
-                      } else {
-                        setSortField("name");
-                        setSortOrder("desc");
-                      }
-                    }}
-                    className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
-                      ${sortField === "name" && sortOrder === "desc"
-                        ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
-                        : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    Name (Z-A)
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (sortField === "rating" && sortOrder === "desc") {
-                        setSortField(null);
-                      } else {
-                        setSortField("rating");
-                        setSortOrder("desc");
-                      }
-                    }}
-                    className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
-                      ${sortField === "rating" && sortOrder === "desc"
-                        ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
-                        : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    Rating (High-Low)
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (sortField === "rating" && sortOrder === "asc") {
-                        setSortField(null);
-                      } else {
-                        setSortField("rating");
-                        setSortOrder("asc");
-                      }
-                    }}
-                    className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
-                      ${sortField === "rating" && sortOrder === "asc"
-                        ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
-                        : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  >
-                    Rating (Low-High)
-                  </button>
+                    SORT BY:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        if (sortField === "name" && sortOrder === "asc") {
+                          setSortField(null);
+                        } else {
+                          setSortField("name");
+                          setSortOrder("asc");
+                        }
+                      }}
+                      className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
+                        ${sortField === "name" && sortOrder === "asc"
+                          ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
+                          : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Name (A-Z)
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (sortField === "name" && sortOrder === "desc") {
+                          setSortField(null);
+                        } else {
+                          setSortField("name");
+                          setSortOrder("desc");
+                        }
+                      }}
+                      className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
+                        ${sortField === "name" && sortOrder === "desc"
+                          ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
+                          : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Name (Z-A)
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (sortField === "rating" && sortOrder === "desc") {
+                          setSortField(null);
+                        } else {
+                          setSortField("rating");
+                          setSortOrder("desc");
+                        }
+                      }}
+                      className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
+                        ${sortField === "rating" && sortOrder === "desc"
+                          ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
+                          : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Rating (High-Low)
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (sortField === "rating" && sortOrder === "asc") {
+                          setSortField(null);
+                        } else {
+                          setSortField("rating");
+                          setSortOrder("asc");
+                        }
+                      }}
+                      className={`text-[12px] px-3 py-1 rounded-[6px] border transition-all cursor-pointer focus:ring-2 focus:ring-[#EFF6FF] focus:outline-none
+                        ${sortField === "rating" && sortOrder === "asc"
+                          ? "bg-[#EFF6FF] border-[#1a56db] text-[#1a56db] font-medium"
+                          : "bg-white border-[#CBD5E1] text-[#475569] hover:bg-[#F8FAFC]"}`}
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Rating (Low-High)
+                    </button>
+                  </div>
                 </div>
+
               </div>
+            )}
 
-            </div>
-
-            {/* Active Filter Summary */}
+            {/* Active Filter Summary — always visible regardless of collapse state */}
             <div
               className="text-[12px] text-[#475569]/80 flex items-center gap-1.5 pt-4"
               style={{ fontFamily: "'Inter', sans-serif" }}
@@ -600,7 +613,14 @@ export default function ConsolePage({ onBackToLanding }) {
 
           {uiState === "RESULTS" && (
             <div className="space-y-4">
-              <SummaryCard summary={summary} />
+              {results && results.length > 0 && (
+                <SummaryCard
+                  keyword={keyword}
+                  location={location}
+                  results={results}
+                  resetKey={summaryResetKey}
+                />
+              )}
               {/* Table Action Row */}
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
                 <div className="space-y-1">

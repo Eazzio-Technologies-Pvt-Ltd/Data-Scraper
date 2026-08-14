@@ -8,7 +8,7 @@ from models.response import SearchResponse
 from models.business import BusinessModel
 from utils.limiter import limiter
 from utils.recaptcha import verify_recaptcha
-from ai_summary import compute_stats, generate_summary
+
 
 router = APIRouter()
 
@@ -37,13 +37,10 @@ async def search_businesses(
 
     if cached:
         cached_businesses = [BusinessModel(**b) for b in cached]
-        stats   = compute_stats(cached_businesses, keyword, location)
-        summary = generate_summary(stats)
         return SearchResponse(
             keyword=keyword, location=location,
             result_count=len(cached), from_cache=True,
             results=cached_businesses,
-            summary=summary
         )
 
     try:
@@ -56,12 +53,9 @@ async def search_businesses(
     save_to_cache(db, keyword, location, cache_key, results)
 
     result_businesses = [BusinessModel(**b) for b in results]
-    stats   = compute_stats(result_businesses, keyword, location)
-    summary = generate_summary(stats)
 
     return SearchResponse(
         keyword=keyword, location=location,
         result_count=len(results), from_cache=False,
         results=result_businesses,
-        summary=summary
     )
