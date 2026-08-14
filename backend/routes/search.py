@@ -9,6 +9,7 @@ from models.business import BusinessModel
 from utils.limiter import limiter
 from utils.recaptcha import verify_recaptcha
 
+
 router = APIRouter()
 
 @router.get("/search", response_model=SearchResponse)
@@ -35,10 +36,11 @@ async def search_businesses(
     cached    = get_cached_result(db, cache_key)
 
     if cached:
+        cached_businesses = [BusinessModel(**b) for b in cached]
         return SearchResponse(
             keyword=keyword, location=location,
             result_count=len(cached), from_cache=True,
-            results=[BusinessModel(**b) for b in cached]
+            results=cached_businesses,
         )
 
     try:
@@ -50,8 +52,10 @@ async def search_businesses(
 
     save_to_cache(db, keyword, location, cache_key, results)
 
+    result_businesses = [BusinessModel(**b) for b in results]
+
     return SearchResponse(
         keyword=keyword, location=location,
         result_count=len(results), from_cache=False,
-        results=[BusinessModel(**b) for b in results]
+        results=result_businesses,
     )

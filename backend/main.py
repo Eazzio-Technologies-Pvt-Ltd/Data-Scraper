@@ -5,6 +5,7 @@ from slowapi.errors import RateLimitExceeded
 from utils.limiter import limiter
 from routes.search import router as search_router
 from routes.export import router as export_router
+from routes.ai import router as ai_router
 from database.db import init_db
 from dotenv import load_dotenv
 import os
@@ -33,6 +34,7 @@ app.add_middleware(
 
 app.include_router(search_router, prefix="/api")
 app.include_router(export_router, prefix="/api")
+app.include_router(ai_router)
 
 @app.get("/api/health")
 def health():

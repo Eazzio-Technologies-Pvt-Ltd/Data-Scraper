@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from models.business import BusinessModel
 
 class SearchResponse(BaseModel):
@@ -8,3 +8,4 @@ class SearchResponse(BaseModel):
     result_count: int
     from_cache:   bool
     results:      List[BusinessModel]
+    summary:      Optional[str] = None
