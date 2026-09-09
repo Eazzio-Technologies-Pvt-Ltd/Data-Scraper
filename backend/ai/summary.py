@@ -71,12 +71,6 @@ def compute_stats(results: list, keyword: str, location: str) -> dict:
 
 
 def generate_summary(stats: dict) -> str | None:
-    """
-    Ask Groq (llama-3.1-8b-instant) to write a 2-3 sentence
-    professional summary of the search stats.
-    Returns None on any error — graceful degradation ensures
-    the search still works even if the LLM call fails.
-    """
     if stats is None:
         return None
 
@@ -103,11 +97,18 @@ Do not use bullet points. Plain paragraph only."""
     try:
         client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="qwen/qwen3.8-27b",
             max_tokens=200,
             messages=[{"role": "user", "content": prompt}],
         )
-        return response.choices[0].message.content
+        summary = response.choices[0].message.content
+
+        if not summary or not summary.strip():
+            print("[ai_summary] Model returned empty content")
+            return None
+
+        print(f"[ai_summary] Generated: {summary}")
+        return summary
     except Exception as e:
         print(f"[ai_summary] Groq call failed: {e}")
         return None
